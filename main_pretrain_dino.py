@@ -379,11 +379,11 @@ def main(args):
     start_time = time.time()
     best_acc = 0
     best_epoch = 0
-    # eval_outputs = eval_co3d(model_without_ddp, co3d_train_dataloader,
-    #             co3d_val_dataloader, co3d_test_dataloader, 
-    #             imgnet_test_dataloader, device, -1, num_epochs=args.eval_co3d_epochs, 
-    #             batch_size=args.eval_co3d_batch_size, learning_rate=5e-4, log_writer=log_writer,
-    #             num_workers=args.num_workers, args=args, eval_align=True)
+    eval_outputs = eval_co3d(model_without_ddp, co3d_train_dataloader,
+                co3d_val_dataloader, co3d_test_dataloader, 
+                imgnet_test_dataloader, device, -1, num_epochs=args.eval_co3d_epochs, 
+                batch_size=args.eval_co3d_batch_size, learning_rate=5e-4, log_writer=log_writer,
+                num_workers=args.num_workers, args=args, eval_align=True)
     # eval_latent_reconstruct(model_without_ddp,
     #             data_loader_train, data_loader_val, device, -1, num_epochs=1,
     #             learning_rate=5e-4, log_writer=log_writer, start_steps=0, args=args)
