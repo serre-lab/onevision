@@ -584,7 +584,7 @@ def auto_load_model(args, model, model_without_ddp, optimizer, loss_scaler, mode
                     latest_ckpt = max(int(t), latest_ckpt)
                     ckpt_name = ckpt
             if latest_ckpt >= 0:
-                args.resume = os.path.join(output_dir, ckpt_name)
+                args.resume = ckpt_name
             print("Auto resume checkpoint: %s" % args.resume)
 
         if args.resume:
