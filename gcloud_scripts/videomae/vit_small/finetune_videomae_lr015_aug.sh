@@ -11,7 +11,7 @@ NCCL_DEBUG=INFO OMP_NUM_THREADS=1 /opt/conda/bin/python -m torch.distributed.run
      --standalone \
      --nnodes=1 \
      --nproc_per_node=2 \
-      main_pretrain_autoreg.py \
+      main_pretrain_videomae.py \
         --num_workers 20 \
         --data_root ${DATA_ROOT} \
         --data_path ${DATA_PATH} \
