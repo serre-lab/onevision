@@ -499,13 +499,14 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 def save_to_bucket(checkpoint_path, output_dir, checkpoint_name):
-    bucket_path = os.path.join("gs://onevision-alignment/alignment_ckpts/", output_dir, checkpoint_name)
-    command = ['gsutil', '-m', 'cp', checkpoint_path, bucket_path]
-    try:
-        subprocess.run(command, check=True)
-        print(f"Uploaded {checkpoint_path} to {bucket_path}")
-    except subprocess.CalledProcessError as e:
-        print("Upload failed:", e)
+    if is_main_process():
+        bucket_path = os.path.join("gs://onevision-alignment/alignment_ckpts/", output_dir, checkpoint_name)
+        command = ['gsutil', '-m', 'cp', checkpoint_path, bucket_path]
+        try:
+            subprocess.run(command, check=True)
+            print(f"Uploaded {checkpoint_path} to {bucket_path}")
+        except subprocess.CalledProcessError as e:
+            print("Upload failed:", e)
     return
 
 def save_model(args, epoch, model, model_without_ddp, optimizer, loss_scaler, model_ema=None, linear_model_without_ddp=None, linear_optimizer=None, best_acc=False):
@@ -556,7 +557,7 @@ def save_model(args, epoch, model, model_without_ddp, optimizer, loss_scaler, mo
 
 def load_from_bucket(output_dir):
     bucket_path = os.path.join("gs://onevision-alignment/alignment_ckpts/", output_dir)
-    command = ['gsutil', '-m', 'cp', bucket_path, output_dir]
+    command = ['gsutil', '-m', 'cp', '-r', bucket_path, output_dir]
     try:
         subprocess.run(command, check=True)
         print(f"Downloaded {bucket_path} to {output_dir}")

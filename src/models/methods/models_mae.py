@@ -15,24 +15,26 @@ import torch
 import torch.nn as nn
 import timm
 from timm.models.vision_transformer import PatchEmbed, Block
-from src.models.backbones.models_encoder import EncoderViT
+from src.models.backbones import models_encoder
 from src.util.pos_embed import get_2d_sincos_pos_embed
 
 class MaskedAutoencoderTIMM(nn.Module):
     """ Masked Autoencoder with VisionTransformer backbone
     """
-    def __init__(self, img_size=224, patch_size=16, in_chans=3,
-                 embed_dim=1024, depth=24, num_heads=16,
-                 decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
-                 mlp_ratio=4., norm_layer=nn.LayerNorm, norm_pix_loss=False,
-                 model_name='vit_small_patch16_224.augreg_in21k_ft_in1k', pretrained=True,
-                 drop_rate=0, drop_path_rate=0, **kwargs):
+    def __init__(self,
+                encoder_name='vit_small_patch16_224.augreg_in21k_ft_in1k',
+                backbone_name='EncoderViT',
+                img_size=224, patch_size=16, in_chans=3,
+                embed_dim=1024, depth=24, num_heads=16,
+                decoder_embed_dim=512, decoder_depth=8, decoder_num_heads=16,
+                mlp_ratio=4., norm_layer=nn.LayerNorm, norm_pix_loss=False,
+                pretrained=True, drop_rate=0, drop_path_rate=0, **kwargs):
         super().__init__()
 
         # --------------------------------------------------------------------------
         # MAE encoder specifics
         print("Pretrained", pretrained)
-        self.encoder = EncoderViT(model_name=model_name, pretrained=pretrained, drop_rate=drop_rate, drop_path_rate=drop_path_rate)
+        self.encoder = models_encoder.__dict__[backbone_name](model_name=encoder_name, pretrained=pretrained, drop_rate=drop_rate, drop_path_rate=drop_path_rate)
         num_patches = self.encoder.patch_embed.num_patches
 
         # --------------------------------------------------------------------------
@@ -469,6 +471,13 @@ def mae_vit_small_patch16_timm_dec192d4(**kwargs):
         decoder_embed_dim=192, decoder_depth=4, decoder_num_heads=3,
         mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs)
     return model 
+
+def mae_beit_large_patch16_dec512d8(**kwargs):
+    model = MaskedAutoencoderTIMM(encoder_name='beitv2_large_patch16_224.in1k_ft_in22k_in1k', backbone_name='EncoderBeit',
+        patch_size=16, encoder_embed_dim=1024, depth=24, num_heads=16, decoder_embed_dim=512,
+        decoder_depth=8, decoder_num_heads=16, mlp_ratio=4, norm_layer=partial(nn.LayerNorm, eps=1e-6), **kwargs
+    )
+    return model
 
 # set recommended archs
 mae_vit_base_patch16 = mae_vit_base_patch16_dec512d8b  # decoder: 512 dim, 8 blocks
