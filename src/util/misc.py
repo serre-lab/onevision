@@ -556,8 +556,8 @@ def save_model(args, epoch, model, model_without_ddp, optimizer, loss_scaler, mo
             save_to_bucket(checkpoint_path, args.output_dir, filename)
 
 def load_from_bucket(output_dir):
-    bucket_path = os.path.join("gs://onevision-alignment/alignment_ckpts/", output_dir)
-    command = ['gsutil', '-m', 'cp', '-r', bucket_path, output_dir]
+    bucket_path = "gs://onevision-alignment/alignment_ckpts", output_dir, '*'
+    command = ['gsutil', '-m', 'cp', bucket_path, output_dir]
     try:
         subprocess.run(command, check=True)
         print(f"Downloaded {bucket_path} to {output_dir}")
