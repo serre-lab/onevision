@@ -19,7 +19,7 @@ NCCL_DEBUG=INFO OMP_NUM_THREADS=1 /opt/conda/bin/python -m torch.distributed.run
         --mask_type mvm \
         --mask_ratio 0.875 \
         --model autoreg_beit_large_patch16 \
-        --batch_size 16 \
+        --batch_size 12 \
         --lr 0.0005 \
         --no-binocular \
         --num_frames 8 \
