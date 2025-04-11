@@ -486,6 +486,15 @@ def get_transform_wo_crop(data_config):
     tf += [transforms.ToTensor(), transforms.Normalize(mean=torch.tensor(mean), std=torch.tensor(std))]
     return transforms.Compose(tf)
 
+#TODO add offset for dino mvm
+def get_mvm_attn_mask(q_len, num_frames, offset=0):
+    q_len_per_frame = q_len // num_frames
+    attn_mask = torch.ones((q_len, q_len)).to(torch.bool)
+    for i in range(num_frames):
+        start = i * q_len_per_frame
+        end = (i + 1) * q_len_per_frame
+        attn_mask[start:end, start:end] = False
+    return attn_mask
 
 def get_cvm_attn_mask(q_len, num_frames, offset=0):
     q_len = q_len // num_frames
@@ -524,7 +533,7 @@ def save_model(args, epoch, model, model_without_ddp, optimizer, loss_scaler, mo
             checkpoint_name = 'checkpoint-%s-best.pth' % epoch_name
         else:
             checkpoint_paths = [output_dir / ('checkpoint-%s.pth' % epoch_name)]
-            checkpoint_name = 'checkpoint-%s-best.pth' % epoch_name
+            checkpoint_name = 'checkpoint-%s.pth' % epoch_name
         for checkpoint_path in checkpoint_paths:
             to_save = {
                 'model': model_without_ddp.state_dict(),

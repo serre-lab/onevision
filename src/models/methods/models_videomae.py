@@ -121,6 +121,7 @@ class VideoMAETimm(nn.Module):
         B_orig, _, T, _, _ = x.shape
         # x = rearrange(x, 'b c t h w -> (b t) c h w')
         encoder_features = self.encoder(x, mask, f2d=False) # [B, N_vis, C_e]
+        print(1, encoder_features.shape)
         x = self.encoder_to_decoder(encoder_features) # [B, N_vis, C_d]
         if self.timm_pool:
             encoder_features = self.encoder.model.forward_head(encoder_features, pre_logits=True)

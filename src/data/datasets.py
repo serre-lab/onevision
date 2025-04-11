@@ -16,7 +16,8 @@ from src.data.transforms import *
 from src.data.masking_generator import TubeMaskingGenerator, RandomMaskingGenerator, \
                         CausalMaskingGenerator, CausalInterpolationMaskingGenerator, \
                         AutoregressiveMaskingGenereator, NoMaskingGenerator, \
-                        MultiCropBlockMaskingGenerator, BlockMaskingGenerator
+                        MultiCropBlockMaskingGenerator, BlockMaskingGenerator, \
+                        MaskedVisionModelingMaskingGenerator
 from src.data.co3d_dataset import Co3dLpDatasetNew, AlignmentDataset, NerfDataset, MultiviewDataset
 from src.data.vpt_dataset import PerspectiveDataset
 from torch.utils.data import DataLoader
@@ -43,6 +44,8 @@ def get_masking_generator(mask_type, window_size, mask_ratio, num_frames, mask_r
         masked_position_generator = NoMaskingGenerator(window_size, 0)
     elif mask_type == 'block':
         masked_position_generator = BlockMaskingGenerator(window_size, mask_ratio, mask_ratio_var)
+    elif mask_type == 'mvm':
+        masked_position_generator = MaskedVisionModelingMaskingGenerator(window_size, mask_ratio)
     else:
         masked_position_generator = RandomMaskingGenerator(
             window_size, mask_ratio

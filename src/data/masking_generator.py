@@ -234,9 +234,35 @@ class RandomMaskingGenerator:
             masks.append(mask)
         return np.stack(masks) # [196*8]
 
+class MaskedVisionModelingMaskingGenerator:
+    '''
+    Masking all but first and last frames
+    '''
+    def __init__(self, input_size, mask_ratio):
+        if not isinstance(input_size, tuple):
+            input_size = (input_size,) * 3
+        self.frames, self.height, self.width = input_size
+
+        self.num_patches = self.height * self.width
+        self.num_mask = int(mask_ratio * self.num_patches)
+
+    def __repr__(self):
+        repr_str = "Mask: MVM with all but first and last frame masked"
+        return repr_str
+
+    def __call__(self):
+        masks = []
+        for i in range(self.frames):
+            if i == 0 or i==self.frames-1:
+                mask = np.zeros(self.num_patches)
+            else:
+                mask = np.ones(self.num_patches)
+            masks.append(mask)
+        return np.array(masks) 
+
 class AutoregressiveMaskingGenereator:
     '''
-    Masking all but first frame
+    Masking all but first two frame
     '''
     def __init__(self, input_size, mask_ratio):
         if not isinstance(input_size, tuple):
@@ -319,7 +345,6 @@ class CausalInterpolationMaskingGenerator:
             else:
                 mask = np.zeros(self.num_patches)
             masks.append(mask)
-
         masks.append(np.zeros(self.num_patches))
         # Don't add a mask to the last frame
         return np.array(masks)

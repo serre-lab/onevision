@@ -7,7 +7,7 @@ from einops import rearrange
 from src.util.pos_embed import get_2d_sincos_pos_embed, get_3d_sincos_pos_embed
 # from src.models.models_encoder import EncoderViT
 from src.models.backbones.models_decoder import DecoderViT
-from src.util.misc import get_cvm_attn_mask
+from src.util.misc import get_cvm_attn_mask, get_mvm_attn_mask
 from src.models.backbones import models_encoder
 
 class AutoregViTtimm(nn.Module):
@@ -38,6 +38,7 @@ class AutoregViTtimm(nn.Module):
                 decoder_pos_embed = '3d',
                 decoder_cls = False,
                 timm_pool = False,
+                mask_type = 'autoregressive',
                 **kwargs
                 ):
         super().__init__()
@@ -46,8 +47,12 @@ class AutoregViTtimm(nn.Module):
         # self.encoder = EncoderViT(model_name=encoder_name, drop_rate=drop_rate, drop_path_rate=drop_path_rate, pretrained=pretrained)
         self.encoder = models_encoder.__dict__[backbone_name](model_name=encoder_name, drop_rate=drop_rate, drop_path_rate=drop_path_rate, pretrained=pretrained)
         self.model_name = encoder_name
-        self.time_steps = num_frames-1
+        if mask_type == 'autoregressive':
+            self.time_steps = num_frames-1
+        else:
+            self.time_steps = num_frames
         self.timm_pool = timm_pool
+        self.mask_type = mask_type
         self.decoder_cls = decoder_cls
         self.decoder = DecoderViT(
             num_classes=decoder_num_classes,
@@ -110,7 +115,8 @@ class AutoregViTtimm(nn.Module):
         return {'pos_embed', 'cls_token', 'mask_token', 'temporal_embed'}
 
     def forward(self, x, camera=None, mask=None):
-        x = x[:, :, :self.time_steps, :, :] # Leave out last frame for prediction only
+        if self.mask_type == 'autoregressive':
+            x = x[:, :, :self.time_steps, :, :] # Leave out last frame for prediction only
         batch_size = x.shape[0]
         x = rearrange(x, 'b c t h w -> (b t) c h w') # Merge timestep into batch size for encoding
         encoder_features = self.encoder(x, f2d=True)
@@ -154,7 +160,12 @@ class AutoregViTtimm(nn.Module):
                 x
             ), dim=1)
         x = rearrange(x, '(b t) n c -> b (t n) c', t=self.time_steps)
-        attn_mask = get_cvm_attn_mask(num_patches*(self.time_steps), self.time_steps).to(x.device)
+        if self.mask_type == 'autoregressive':
+            attn_mask = get_cvm_attn_mask(num_patches*(self.time_steps), self.time_steps).to(x.device)
+        elif self.mask_type == 'mvm':
+            attn_mask = get_mvm_attn_mask(num_patches*(self.time_steps), self.time_steps).to(x.device)
+        else:
+            attn_mask = None
         x = self.decoder(x, 0, attn_mask) #(B, N*(T-1), 768*16)
 
         if self.camera_params_enabled:

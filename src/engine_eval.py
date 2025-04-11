@@ -334,15 +334,23 @@ def autoreg_eval_one_epoch(model: torch.nn.Module,
                         pred_frames = rearrange(pred_frames, 'b (t n) (p c) -> b t c n p', c=16, t=n_frames-1)
                         pred_frames = pred_frames[:, 1:, :, :, :]
                         pred_frames = rearrange(pred_frames, 'b t c n p -> b c (t n) p', c=16, t=n_frames-2)
+                    elif args.mask_type == 'mvm':
+                        pred_frames = rearrange(pred_frames, 'b (t n) (p c) -> b t c n p', c=16, t=n_frames)
+                        pred_frames = pred_frames[:, 1:-1, :, :]
+                        pred_frames = rearrange(pred_frames, 'b t c n p -> b c (t n) p', c=16, t=n_frames-2)                        
                     else:
                         pred_frames = rearrange(pred_frames, 'b n (p c) -> b c n p', c=16)
                     loss = loss_func(input=pred_frames, target=labels_long)
-
                 else:
                     if args.mask_type == 'autoregressive':
                         pred_frames = rearrange(pred_frames, 'b (t n) p -> b t n p', t=n_frames-1)
                         pred_frames = pred_frames[:, 1:, :, :]
-                        pred_frames = rearrange(pred_frames, 'b t n p -> b (t n) p', t=n_frames-2)                                
+                        pred_frames = rearrange(pred_frames, 'b t n p -> b (t n) p', t=n_frames-2)
+                    elif args.mask_type == 'mvm':
+                        pred_frames = rearrange(pred_frames, 'b (t n) p -> b t n p', t=n_frames)
+                        pred_frames = pred_frames[:, 1:-1, :, :]
+                        pred_frames = rearrange(pred_frames, 'b t n p -> b (t n) p', t=n_frames-2)
+                                                    
                     loss = loss_func(input=pred_frames, target=labels)
                 if use_cce:
                     loss = loss/math.log(16)

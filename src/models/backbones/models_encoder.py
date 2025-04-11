@@ -143,7 +143,7 @@ class EncoderViT(nn.Module):
         B, _, C = x.shape #B = B*T | C --> enc emd dim
         selector = ~mask.view(B, -1)
         if (~selector[0]).sum() == 0 and (~selector).sum() != 0:  #causal mode
-            B = int(B*0.75)
+            B = int(B*(1-1/self.time_steps))
         x = x[selector]
         x = x.reshape(B, -1, C)
         # x = x[selector].reshape(B, -1, C)
